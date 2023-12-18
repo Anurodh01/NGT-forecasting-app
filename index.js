@@ -4,6 +4,10 @@ const { Schema } = mongoose;
 require("dotenv").config();
 const SchemaDefinitionModel = require("./schemadefinitionModel");
 const app = express();
+const bodyParser = require("body-parser");
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -12,47 +16,13 @@ mongoose.connect(process.env.MONGODB_URI, {
   pass: "teamdata3",
 });
 
-// just for reference
-// const schema = {
-//   tableName : "someTable",
-//   fields : [
-//     {
-//       name : "Field Name" , type : "Number"
-//     },
-//     ....
-
-//   ]
-// }
-const newData = {
-  tableName: "MyCustomTable",
-  data: [
-    {
-      country: "C2",
-      gender: "Male",
-      age: "20-40",
-      data: {
-        2019: 15,
-        2020: 6,
-      },
-    },
-  ],
-};
-const newSchemaDefinition = new SchemaDefinitionModel({
-  tableName: "MyCustomTable",
-  fields: [
-    { name: "country", type: "String" },
-    { name: "gender", type: "String" },
-    { name: "age", type: "String" },
-    { name: "data", type: "Object" }, // Assuming 'Object' type for simplicity
-    // Add more fields as needed
-  ],
-});
-
 app.get("/", (request, response) => {
   response.json(data).status(200);
 });
 
 app.post("/createSchema", (req, res) => {
+  console.log(req);
+  const newSchemaDefinition = new SchemaDefinitionModel(req.body);
   newSchemaDefinition
     .save()
     .then((result) => {
@@ -69,9 +39,11 @@ app.post("/createSchema", (req, res) => {
     });
 });
 
-app.post("/sheet", async (req, res) => {
+app.post("/sheet/:tableName", async (req, res) => {
+  const { tableName } = req.params;
+  console.log(req.params);
   const schemaDefinition = await SchemaDefinitionModel.findOne({
-    tableName: "MyCustomTable",
+    tableName: tableName,
   });
   const dynamicSchema = new Schema({});
 
@@ -79,23 +51,60 @@ app.post("/sheet", async (req, res) => {
     dynamicSchema.add({
       [field.name]: {
         type: mongoose.Schema.Types[field.type],
-        // You can add more options based on the schema definition
       },
     });
   });
-
-  const DataModel = mongoose.model("MyCustomTable", dynamicSchema);
-  const data = new DataModel(newData);
-  data
-    .save()
-    .then((result) => {
-      console.log("Data saved:", result);
-    })
-    .catch((error) => {
-      console.error("Error saving data:", error);
-    });
+  const DataModel = mongoose.model(tableName, dynamicSchema);
+  req.body.data.forEach((data) => {
+    const dataModel = new DataModel(data);
+    dataModel
+      .save()
+      .then((result) => {
+        console.log("Data saved:", result);
+      })
+      .catch((error) => {
+        console.error("Error saving data:", error);
+      });
+  });
 });
 
 app.listen(process.env.PORT, () => {
   console.log("app is running on port: " + process.env.PORT);
 });
+
+
+// just for reference
+// const schema = {
+//   tableName : "someTable",
+//   fields : [
+//     {
+//       name : "Field Name" , type : "Number"
+//     },
+//     ....
+
+//   ]
+// }
+// const newData = {
+//   tableName: "MyCustomTable",
+//   data: [
+//     {
+//       country: "C2",
+//       gender: "Male",
+//       age: "20-40",
+//       data: {
+//         2019: 15,
+//         2020: 6,
+//       },
+//     },
+//   ],
+// };
+// const newSchemaDefinition = new SchemaDefinitionModel({
+//   tableName: "MyCustomTable",
+//   fields: [
+//     { name: "country", type: "String" },
+//     { name: "gender", type: "String" },
+//     { name: "age", type: "String" },
+//     { name: "data", type: "Object" }, // Assuming 'Object' type for simplicity
+//     // Add more fields as needed
+//   ],
+// });
