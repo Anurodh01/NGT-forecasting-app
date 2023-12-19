@@ -55,7 +55,7 @@ app.post("/sheet/:tableName", async (req, res) => {
     });
   });
   const DataModel = mongoose.model(tableName, dynamicSchema);
-  req.body.data.forEach((data) => {
+  req.body.sheet.forEach((data) => {
     const dataModel = new DataModel(data);
     dataModel
       .save()
