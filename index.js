@@ -20,8 +20,7 @@ app.get("/", (request, response) => {
   response.json(data).status(200);
 });
 
-app.post("/createSchema", (req, res) => {
-  console.log(req);
+app.post("/schema", (req, res) => {
   const newSchemaDefinition = new SchemaDefinitionModel(req.body);
   newSchemaDefinition
     .save()
@@ -37,6 +36,12 @@ app.post("/createSchema", (req, res) => {
     .catch((error) => {
       console.error("Some error occured", error);
     });
+});
+
+app.get("/schema", async (req, res) => {
+  const tableName = req.query.table;
+  const schema = await SchemaDefinitionModel.findOne({ tableName: tableName });
+  res.send(schema).status(200);
 });
 
 app.post("/sheet/:tableName", async (req, res) => {
@@ -66,6 +71,7 @@ app.post("/sheet/:tableName", async (req, res) => {
         console.error("Error saving data:", error);
       });
   });
+  res.status(201);
 });
 
 app.listen(process.env.PORT, () => {
