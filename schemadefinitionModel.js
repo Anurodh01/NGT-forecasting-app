@@ -19,6 +19,20 @@ const schemaDefinitionSchema = new Schema({
       },
     },
   ],
+  time: {
+    series: {
+      type: "String",
+      required: true,
+    },
+    start: {
+      type: "String",
+      required: true,
+    },
+    end: {
+      type: "String",
+      required: true,
+    },
+  },
 });
 
 const SchemaDefinitionModel = mongoose.model(
