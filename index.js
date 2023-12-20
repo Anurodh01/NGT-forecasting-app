@@ -75,6 +75,15 @@ app.post("/sheet/:tableName", async (req, res) => {
   res.status(201);
 });
 
+app.get("/sheet/:tablename", async (request, response)=>{
+    const { tablename } = request.params;
+    const db= mongoose.connection.db;
+    const result= await db.collection(`${tablename}`).find().toArray(); 
+    response.json({
+      "sheet": result
+    }).status(200);
+});
+
 app.listen(process.env.PORT, () => {
   console.log("app is running on port: " + process.env.PORT);
 });
