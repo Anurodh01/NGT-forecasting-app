@@ -35,6 +35,7 @@ app.post("/schema", (req, res) => {
     })
     .catch((error) => {
       console.error("Some error occured", error);
+      res.status(500);
     });
 });
 
@@ -77,40 +78,3 @@ app.post("/sheet/:tableName", async (req, res) => {
 app.listen(process.env.PORT, () => {
   console.log("app is running on port: " + process.env.PORT);
 });
-
-
-// just for reference
-// const schema = {
-//   tableName : "someTable",
-//   fields : [
-//     {
-//       name : "Field Name" , type : "Number"
-//     },
-//     ....
-
-//   ]
-// }
-// const newData = {
-//   tableName: "MyCustomTable",
-//   data: [
-//     {
-//       country: "C2",
-//       gender: "Male",
-//       age: "20-40",
-//       data: {
-//         2019: 15,
-//         2020: 6,
-//       },
-//     },
-//   ],
-// };
-// const newSchemaDefinition = new SchemaDefinitionModel({
-//   tableName: "MyCustomTable",
-//   fields: [
-//     { name: "country", type: "String" },
-//     { name: "gender", type: "String" },
-//     { name: "age", type: "String" },
-//     { name: "data", type: "Object" }, // Assuming 'Object' type for simplicity
-//     // Add more fields as needed
-//   ],
-// });
