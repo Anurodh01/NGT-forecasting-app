@@ -60,7 +60,7 @@ app.post("/sheet/:tableName", async (req, res) => {
       },
     });
   });
-  const DataModel = mongoose.model(tableName, dynamicSchema);
+  const DataModel = mongoose.model(tableName, dynamicSchema, tableName);
   req.body.sheet.forEach((data) => {
     const dataModel = new DataModel(data);
     dataModel
@@ -83,6 +83,27 @@ app.get("/sheet/:tablename", async (request, response)=>{
       "sheet": result
     }).status(200);
 });
+
+app.put("/sheet/:tablename", async(req, res)=>{
+  const data= req.body;
+  const { tablename } = req.params;
+
+  const db= mongoose.connection.db;
+  const collection = await mongoose.connection.db.listCollections({ name: tablename }).toArray();
+  if(collection.length > 0) {
+   data.sheet.forEach(async(cell)=> {
+      const collection = db.collection(tablename);
+      const _id = cell._id;
+      delete cell._id;
+      await collection.updateOne({_id: new mongoose.Types.ObjectId(_id)}, {$set:cell }, {upsert: true});
+   });
+  }
+
+  res.json({
+    "status":"Sheet Updated successfully"
+  }).status(200);
+});
+
 
 app.listen(process.env.PORT, () => {
   console.log("app is running on port: " + process.env.PORT);
