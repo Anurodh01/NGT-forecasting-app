@@ -5,7 +5,9 @@ require("dotenv").config();
 const SchemaDefinitionModel = require("./schemadefinitionModel");
 const app = express();
 const bodyParser = require("body-parser");
+const cors = require('cors')
 
+app.use(cors())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -14,10 +16,6 @@ mongoose.connect(process.env.MONGODB_URI, {
   useUnifiedTopology: true,
   user: "datacube",
   pass: "teamdata3",
-});
-
-app.get("/", (request, response) => {
-  response.json(data).status(200);
 });
 
 app.post("/schema", (req, res) => {
@@ -51,7 +49,7 @@ app.post("/sheet/:tableName", async (req, res) => {
   const schemaDefinition = await SchemaDefinitionModel.findOne({
     tableName: tableName,
   });
-  const dynamicSchema = new Schema({});
+  const dynamicSchema = new Schema({}, {versionKey:false});
 
   schemaDefinition.fields.forEach((field) => {
     dynamicSchema.add({
@@ -61,18 +59,14 @@ app.post("/sheet/:tableName", async (req, res) => {
     });
   });
   const DataModel = mongoose.model(tableName, dynamicSchema, tableName);
-  req.body.sheet.forEach((data) => {
-    const dataModel = new DataModel(data);
-    dataModel
-      .save()
-      .then((result) => {
-        console.log("Data saved:", result);
-      })
-      .catch((error) => {
-        console.error("Error saving data:", error);
-      });
-  });
-  res.status(201);
+  let sheet=[]
+  for(let cell of req.body.sheet){
+    const result= await DataModel.create(cell);
+    sheet.push(result);
+  }
+  res.json({
+    sheet
+  }).status(201);
 });
 
 app.get("/sheet/:tablename", async (request, response)=>{
