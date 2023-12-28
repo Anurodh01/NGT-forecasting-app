@@ -18,7 +18,20 @@ mongoose.connect(process.env.MONGODB_URI, {
   pass: "teamdata3",
 });
 
-app.post("/schema", (req, res) => {
+app.post("/schema", async(req, res) => {
+
+  // check whether schema already exist or not
+  let tableName= req.body.tableName;
+  const schemaExist= await SchemaDefinitionModel.findOne({tableName: tableName});
+  console.log(schemaExist)
+
+  if(schemaExist){
+    return res.status(400).json({
+      "status":"fail",
+      "message": `Sheet with name ${tableName} is already exist!!`
+    });
+  }
+
   const newSchemaDefinition = new SchemaDefinitionModel(req.body);
   newSchemaDefinition
     .save()
