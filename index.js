@@ -85,6 +85,12 @@ app.post("/sheet/:tableName", async (req, res) => {
 app.get("/sheet/:tablename", async (request, response)=>{
     const { tablename } = request.params;
     const db= mongoose.connection.db;
+    const collection = await db.listCollections({ name: tablename }).toArray();
+    if(collection.length==0){
+      return response.json({
+        "message":`${tablename} doesn't exist!`
+      }).status(404);
+    }
     const result= await db.collection(`${tablename}`).find().toArray(); 
     response.json({
       "sheet": result
