@@ -53,7 +53,13 @@ app.post("/schema", async(req, res) => {
 app.get("/schema", async (req, res) => {
   const tableName = req.query.table;
   const schema = await SchemaDefinitionModel.findOne({ tableName: tableName });
-  res.send(schema).status(200);
+  if (schema) {
+    res.send(schema).status(200);
+  } else {
+    res.status(404).json({
+      message: `Sheet ${tableName} does not exist`,
+    });
+  }
 });
 
 app.post("/sheet/:tableName", async (req, res) => {
@@ -62,7 +68,7 @@ app.post("/sheet/:tableName", async (req, res) => {
   const schemaDefinition = await SchemaDefinitionModel.findOne({
     tableName: tableName,
   });
-  const dynamicSchema = new Schema({}, {versionKey:false});
+  const dynamicSchema = new Schema({}, { versionKey: false });
 
   schemaDefinition.fields.forEach((field) => {
     dynamicSchema.add({
@@ -72,29 +78,27 @@ app.post("/sheet/:tableName", async (req, res) => {
     });
   });
   const DataModel = mongoose.model(tableName, dynamicSchema, tableName);
-  let sheet=[]
-  for(let cell of req.body.sheet){
-    const result= await DataModel.create(cell);
+  let sheet = [];
+  for (let cell of req.body.sheet) {
+    const result = await DataModel.create(cell);
     sheet.push(result);
   }
-  res.json({
-    sheet
-  }).status(201);
+  res
+    .json({
+      sheet,
+    })
+    .status(201);
 });
 
-app.get("/sheet/:tablename", async (request, response)=>{
-    const { tablename } = request.params;
-    const db= mongoose.connection.db;
-    const collection = await db.listCollections({ name: tablename }).toArray();
-    if(collection.length==0){
-      return response.json({
-        "message":`${tablename} doesn't exist!`
-      }).status(404);
-    }
-    const result= await db.collection(`${tablename}`).find().toArray(); 
-    response.json({
-      "sheet": result
-    }).status(200);
+app.get("/sheet/:tablename", async (request, response) => {
+  const { tablename } = request.params;
+  const db = mongoose.connection.db;
+  const result = await db.collection(`${tablename}`).find().toArray();
+  response
+    .json({
+      sheet: result,
+    })
+    .status(200);
 });
 
 app.put("/sheet/:tablename", async(req, res)=>{
