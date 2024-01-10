@@ -33,6 +33,7 @@ const schemaDefinitionSchema = new Schema({
       required: true,
     },
   },
+  timeAttributes : [],
 });
 
 const SchemaDefinitionModel = mongoose.model(
