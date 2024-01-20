@@ -62,6 +62,27 @@ app.get("/schema", async (req, res) => {
   }
 });
 
+app.put("/schema", async (request, response) => {
+  try {
+    let tableName = request.body.tableName;
+    const schemaExist = await SchemaDefinitionModel.findOne({
+      tableName: tableName,
+    });
+
+    //schema update
+    await SchemaDefinitionModel.findByIdAndUpdate(
+      { _id: schemaExist._id },
+      request.body
+    );
+
+    response.status(200).json({
+      message: "Schema updated successfully",
+    });
+  } catch (e) {
+    console.log(e);
+  }
+});
+
 app.post("/sheet/:tableName", async (req, res) => {
   const { tableName } = req.params;
   console.log(req.params);
